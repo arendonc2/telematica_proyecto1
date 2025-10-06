@@ -231,30 +231,30 @@ int main(void){
             memcpy(body, req.payload, L); body[L] = '\0';
         }
 
-        if (strcmp(req.uri_path, "sensor") == 0){
-            if (req.code == COAP_POST){ // guardar
+         if (strcmp(req.uri_path, "sensor") == 0){
+            if (req.code == COAP_POST){ /* guardar */
                 if (append_line(DATA, body) == 0){
-                    snprintf(resp, sizeof(resp), "UPDATED");
-                    rlen = strlen(resp); rcode = COAP_204_CHANGED;
+                    rlen  = safe_cp(resp, sizeof(resp), "UPDATED");
+                    rcode = COAP_204_CHANGED;
                 } else {
-                    snprintf(resp, sizeof(resp), "WRITE_FAIL");
-                    rlen = strlen(resp); rcode = COAP_500_INTERR;
+                    rlen  = safe_cp(resp, sizeof(resp), "WRITE_FAIL");
+                    rcode = COAP_500_INTERR;
                 }
-            } else if (req.code == COAP_GET){ // devolver el ultimo
-                char last[2048];
+            } else if (req.code == COAP_GET){ /* devolver último */
+                char last[2048] = {0};
                 if (read_last_line(DATA, last, sizeof(last))){
-                    snprintf(resp, sizeof(resp), "%s", last);
+                    rlen  = safe_cp(resp, sizeof(resp), last);
                 } else {
-                    snprintf(resp, sizeof(resp), "NO_DATA");
+                    rlen  = safe_cp(resp, sizeof(resp), "NO_DATA");
                 }
-                rlen = strlen(resp); rcode = COAP_205_CONTENT;
+                rcode = COAP_205_CONTENT;
             } else {
-                snprintf(resp, sizeof(resp), "NOT_FOUND"); // no soporto el metodo
-                rlen = strlen(resp); rcode = COAP_404_NOTFOUND;
+                rlen  = safe_cp(resp, sizeof(resp), "NOT_FOUND");
+                rcode = COAP_404_NOTFOUND;
             }
         } else {
-            snprintf(resp, sizeof(resp), "NOT_FOUND");
-            rlen = strlen(resp); rcode = COAP_404_NOTFOUND;
+            rlen  = safe_cp(resp, sizeof(resp), "NOT_FOUND");
+            rcode = COAP_404_NOTFOUND;
         }
 
         size_t outlen = build_resp(outbuf, sizeof(outbuf),
